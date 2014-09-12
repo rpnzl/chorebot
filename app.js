@@ -74,7 +74,7 @@ function processChores() {
       });
     }
   ], function (err, result) {
-    console.log('done');
+    // console.log('done');
   });
 }
 
@@ -83,6 +83,8 @@ function processChores() {
  *
  */
 
-// if (moment().day() == 5 && envVerification()) {
+console.log("moment:", moment().day(), moment().hour());
+
+if (moment().day() == 5 && moment().hour() == 2 && envVerification()) {
   return processChores();
-// }
+}
