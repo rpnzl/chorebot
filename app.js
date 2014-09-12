@@ -83,7 +83,7 @@ function processChores() {
  *
  */
 
-if (moment().day() == 5 && moment().hour() == 2 && envVerification()) {
+if (moment().day() == 5 && moment().hour() == 12 && envVerification()) {
   return processChores();
 } else if (process.env.ALWAYS_TRIGGER) {
   return processChores();
