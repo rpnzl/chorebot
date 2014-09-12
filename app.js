@@ -46,20 +46,20 @@ function processChores() {
       slack.api('users.list', cb);
     },
     function pluckValidUsers(res, cb) {
-      var ids = _.chain(res.members)
-        .pluck('id')
+      var names = _.chain(res.members)
+        .pluck('name')
         .intersection(process.env.USERS.split(','))
         .value();
-      cb(null, ids);
+      cb(null, names);
     },
-    function assignChores(ids, cb) {
-      var choreMap = _.zipObject(ids, _.shuffle(process.env.CHORES.split(',')));
+    function assignChores(names, cb) {
+      var choreMap = _.zipObject(names, _.shuffle(process.env.CHORES.split(',')));
       cb(null, choreMap);
     },
     function sendMessages(choreMap, cb) {
-      _.forOwn(choreMap, function (chore, id) {
+      _.forOwn(choreMap, function (chore, name) {
         slack.api('chat.postMessage', {
-          channel: id,
+          channel: '@' + name,
           username: process.env.SLACK_USER,
           text: "It's your turn to " + chore + "!",
           attachments: JSON.stringify([{
@@ -82,8 +82,6 @@ function processChores() {
 /**
  *
  */
-
-console.log("moment:", moment().day(), moment().hour());
 
 if (moment().day() == 5 && moment().hour() == 2 && envVerification()) {
   return processChores();
