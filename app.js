@@ -4,16 +4,17 @@
  * ========
  */
 
-var _         = require('lodash')
-  , utils     = require('./lib/utils')
-  , async     = require('async')
-  , Slack     = require('slack-node')
-  , Models    = require('./lib/models')
-  , dotenv    = require('dotenv')
-  , moment    = require('moment')
-  , express   = require('express')
-  , winston   = require('winston')
-  , mongoose  = require('mongoose')
+var _          = require('lodash')
+  , utils      = require('./lib/utils')
+  , async      = require('async')
+  , Slack      = require('slack-node')
+  , Models     = require('./lib/models')
+  , dotenv     = require('dotenv')
+  , moment     = require('moment')
+  , express    = require('express')
+  , winston    = require('winston')
+  , mongoose   = require('mongoose')
+  , bodyParser = require('body-parser')
   , app, models;
 
 
@@ -41,7 +42,8 @@ mongoose.connect(process.env.MONGOHQ_URL);
 models = Models(mongoose);
 
 app = express();
-app.use(express.bodyParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
 
 
 /**
