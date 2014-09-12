@@ -1,90 +1,65 @@
-var _       = require('lodash')
-  , dotenv  = require('dotenv')
-  , async   = require('async')
-  , moment  = require('moment')
-  , winston = require('winston')
-  , Slack   = require('slack-node');
+
+/**
+ * CHOREBOT
+ * ========
+ */
+
+var _         = require('lodash')
+  , utils     = require('./lib/utils')
+  , async     = require('async')
+  , Slack     = require('slack-node')
+  , Models    = require('./lib/models')
+  , dotenv    = require('dotenv')
+  , moment    = require('moment')
+  , express   = require('express')
+  , winston   = require('winston')
+  , mongoose  = require('mongoose')
+  , app, models;
 
 
 /**
- * Development Environment
- * =======================
+ * CONFIGURATION
+ * =============
+ *
+ * - verify environment variables are present
+ * - setup services
  */
 
+// load env
 if (!process.env.NODE_ENV || process.env.NODE_ENV == 'development') {
   dotenv.load();
 }
 
-
-/**
- * Env Verification
- * ================
- */
-
-function envVerification() {
-  var valid = true;
-  [
-    'SLACK_TOKEN',
-    'SLACK_USER',
-    'CHORES'
-  ].forEach(function (v) {
-    if (!process.env[v]) valid = false;
-  });
-  return valid;
+// verify env
+if (!utils.verifyEnv()) {
+  winston.error('Please verify your environment!');
+  return;
 }
+
+// services
+mongoose.connect(process.env.MONGOHQ_URL);
+app    = express();
+models = Models(mongoose);
 
 
 /**
- * Process Chores
- * ==============
+ * ROUTES
+ * ======
  */
 
-function processChores() {
-  var slack  = new Slack(process.env.SLACK_TOKEN);
-  async.waterfall([
-    function getSlackUsers(cb) {
-      slack.api('users.list', cb);
-    },
-    function pluckValidUsers(res, cb) {
-      var names = _.chain(res.members)
-        .pluck('name')
-        .intersection(process.env.USERS.split(','))
-        .value();
-      cb(null, names);
-    },
-    function assignChores(names, cb) {
-      var choreMap = _.zipObject(names, _.shuffle(process.env.CHORES.split(',')));
-      cb(null, choreMap);
-    },
-    function sendMessages(choreMap, cb) {
-      _.forOwn(choreMap, function (chore, name) {
-        slack.api('chat.postMessage', {
-          channel: '@' + name,
-          username: process.env.SLACK_USER,
-          text: "It's your turn to " + chore + "!",
-          attachments: JSON.stringify([{
-            fallback: "It's your turn to " + chore + "!",
-            color: "warning",
-            fields: [{ title: "Chore", value: chore, short: true }]
-          }])
-        }, function (err, res) {
-          if (err) return cb(err);
-          console.log(res);
-        });
-      });
-    }
-  ], function (err, result) {
-    // console.log('done');
-  });
-}
+app.get('/', function (req, res) {
+  res.json({ chorebot: 'says "get back to work!"' });
+});
+
+app.post('/inbound', function (req, res) {
+  winston.info(req.url, req.body);
+  res.send('ok');
+});
 
 
 /**
- *
+ * START SERVER
+ * ============
  */
 
-if (moment().day() == 5 && moment().hour() == 12 && envVerification()) {
-  return processChores();
-} else if (process.env.ALWAYS_TRIGGER) {
-  return processChores();
-}
+app.listen(3000);
