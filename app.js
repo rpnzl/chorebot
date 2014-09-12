@@ -38,8 +38,10 @@ if (!utils.verifyEnv()) {
 
 // services
 mongoose.connect(process.env.MONGOHQ_URL);
-app    = express();
 models = Models(mongoose);
+
+app = express();
+app.use(express.bodyParser());
 
 
 /**
@@ -48,11 +50,11 @@ models = Models(mongoose);
  */
 
 app.get('/', function (req, res) {
-  res.json({ chorebot: 'says "get back to work!"' });
+  res.json({ chorebot: "says 'get back to work!'" });
 });
 
 app.post('/inbound', function (req, res) {
-  winston.info(req.url, req.body);
+  winston.info(req.url, req.query, req.body);
   res.send('ok');
 });
 
