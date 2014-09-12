@@ -1,0 +1,19 @@
+{
+  "name": "chores",
+  "version": "0.0.1",
+  "description": "Small chore notifier.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Michael Giuliana <mike@halopowered.com>",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^0.9.0",
+    "dotenv": "^0.4.0",
+    "lodash": "^2.4.1",
+    "moment": "^2.8.3",
+    "slack-node": "0.0.92",
+    "winston": "^0.7.3"
+  }
+}
