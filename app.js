@@ -56,8 +56,18 @@ app.get('/', function (req, res) {
 });
 
 app.post('/inbound', function (req, res) {
-  winston.info(req.url, req.param('user_name'));
-  res.send('nice!');
+  var cmd = req.param('text').split(' ')[0]
+    , msg;
+
+  if (cmd === 'help') {
+    msg = [
+      'CHOREBOT help info:'
+    ].join('\n');
+  } else if (cmd === 'done') {
+    //
+  }
+
+  res.send(msg);
 });
 
 
