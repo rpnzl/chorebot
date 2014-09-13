@@ -61,7 +61,8 @@ app.post('/inbound', function (req, res) {
 
   if (cmd === 'help') {
     msg = [
-      'CHOREBOT help info:'
+      'CHOREBOT HELP',
+      '=============',
     ].join('\n');
   } else if (cmd === 'done') {
     //
