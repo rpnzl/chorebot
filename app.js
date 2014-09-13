@@ -56,8 +56,8 @@ app.get('/', function (req, res) {
 });
 
 app.post('/inbound', function (req, res) {
-  winston.info(req.url, req.query, req.body);
-  res.send('ok');
+  winston.info(req.url, req.param('user_name'));
+  res.send('nice!');
 });
 
 
