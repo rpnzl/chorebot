@@ -41,6 +41,7 @@ if (!utils.verifyEnv()) {
 mongoose.connect(process.env.MONGOHQ_URL);
 models = Models(mongoose);
 
+// app
 app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -49,20 +50,53 @@ app.use(bodyParser.urlencoded());
 /**
  * ROUTES
  * ======
+ *
+ * - one route in case anyone decides to visit the site
+ * - one route that handles Slack post-backs
  */
 
+// site
 app.get('/', function (req, res) {
-  res.json({ chorebot: "says 'get back to work!'" });
+  async.waterfall([
+    function findThisWeeksChores(cb) {
+      models.Chore.find({
+        assigned: utils.getPreviousSunday().toDate()
+      }).exec(function (err, chores) {
+        if (err) return cb(err);
+        chores.forEach(function (v) { v = v.toJSON(); });
+        cb(null, chores);
+      });
+    },
+    function findLastWeeksChores(thisWeek, cb) {
+      models.Chore.find({
+        assigned: utils.getPreviousSunday().subtract('days', 7).toDate()
+      }).exec(function (err, chores) {
+        if (err) return cb(err);
+        chores.forEach(function (v) { v = v.toJSON(); });
+        cb(null, thisWeek, chores);
+      });
+    }
+  ], function (err, thisWeek, lastWeek) {
+    if (err) return winston.error(err);
+    res.json({
+      chorebot: "says 'get back to work!'",
+      thisWeek: thisWeek,
+      lastWeek: lastWeek
+    });
+  });
 });
 
+// postback
 app.post('/inbound', function (req, res) {
   var cmd = req.param('text').split(' ')[0]
     , msg;
 
   if (cmd === 'help') {
     msg = [
+      '',
       'CHOREBOT HELP',
       '=============',
+      ''
     ].join('\n');
   } else if (cmd === 'done') {
     //
