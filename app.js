@@ -89,7 +89,7 @@ app.post('/inbound', function (req, res) {
     if (text.indexOf(v) === 0) cmd = v;
   });
 
-  commands[v || 'help'](req.body, function (err, result) {
+  commands[cmd || 'help'](req.body, function (err, result) {
     if (err) return winston.error(err);
     res.json(result);
   });
