@@ -7,12 +7,11 @@
 var _          = require('lodash')
   , utils      = require('./lib/utils')
   , async      = require('async')
-  , Slack      = require('slack-node')
   , Models     = require('./lib/models')
-  , dotenv     = require('dotenv')
   , moment     = require('moment')
   , express    = require('express')
   , winston    = require('winston')
+  , commands   = require('./lib/commands')
   , mongoose   = require('mongoose')
   , bodyParser = require('body-parser')
   , app, models;
@@ -25,11 +24,6 @@ var _          = require('lodash')
  * - verify environment variables are present
  * - setup services
  */
-
-// load env
-if (!process.env.NODE_ENV || process.env.NODE_ENV == 'development') {
-  dotenv.load();
-}
 
 // verify env
 if (!utils.verifyEnv()) {
@@ -55,25 +49,25 @@ app.use(bodyParser.urlencoded());
  * - one route that handles Slack post-backs
  */
 
-// site
+// list
 app.get('/', function (req, res) {
   async.waterfall([
-    function findThisWeeksChores(cb) {
-      models.Chore.find({
+    function findThisWeeksAssignments(cb) {
+      models.Assignment.find({
         assigned: utils.getPreviousSunday().toDate()
-      }).exec(function (err, chores) {
+      }).exec(function (err, assignments) {
         if (err) return cb(err);
-        chores.forEach(function (v) { v = v.toJSON(); });
-        cb(null, chores);
+        assignments.forEach(function (v) { v = v.toJSON(); });
+        cb(null, assignments);
       });
     },
-    function findLastWeeksChores(thisWeek, cb) {
-      models.Chore.find({
+    function findLastWeeksAssignments(thisWeek, cb) {
+      models.Assignment.find({
         assigned: utils.getPreviousSunday().subtract('days', 7).toDate()
-      }).exec(function (err, chores) {
+      }).exec(function (err, assignments) {
         if (err) return cb(err);
-        chores.forEach(function (v) { v = v.toJSON(); });
-        cb(null, thisWeek, chores);
+        assignments.forEach(function (v) { v = v.toJSON(); });
+        cb(null, thisWeek, assignments);
       });
     }
   ], function (err, thisWeek, lastWeek) {
@@ -88,21 +82,17 @@ app.get('/', function (req, res) {
 
 // postback
 app.post('/inbound', function (req, res) {
-  var cmd = req.param('text').split(' ')[0]
-    , msg;
+  var text = req.param('text')
+    , cmd;
 
-  if (cmd === 'help') {
-    msg = [
-      '',
-      'CHOREBOT HELP',
-      '=============',
-      ''
-    ].join('\n');
-  } else if (cmd === 'done') {
-    //
-  }
+  _.keys(commands).forEach(function (v) {
+    if (text.indexOf(v) === 0) cmd = v;
+  });
 
-  res.send(msg);
+  commands[v || 'help'](req.body, function (err, result) {
+    if (err) return winston.error(err);
+    res.json(result);
+  });
 });
 
 
