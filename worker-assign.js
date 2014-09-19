@@ -118,5 +118,5 @@ async.waterfall([
 
 ], function (err, result) {
   if (err) return utils.logger.error(err);
-  utils.logger.info('Chores assigned successfully.');
+  return utils.logger.info('Chores assigned successfully.');
 });
