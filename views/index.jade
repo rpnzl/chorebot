@@ -14,10 +14,14 @@ block content
             tr
               th Who
               th What
-              th Done
+              th Notified?
+              th Will Notify
+              th Done?
           tbody
             each assignment in assignments
               tr
-                td @#{assignment.userName}
+                td @#{assignment.userName} (#{assignment.userId})
                 td #{assignment.chore}
-                td #{assignment.done}
+                td #{assignment.notified ? 'yes' : 'no'}
+                td #{assignment.notify}
+                td #{assignment.done ? 'yes' : 'no'}
