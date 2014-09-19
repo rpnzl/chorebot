@@ -13,10 +13,13 @@
     "body-parser": "^1.8.1",
     "dotenv": "^0.4.0",
     "express": "^4.9.0",
+    "express-namespace": "^0.1.1",
+    "jade": "^1.6.0",
     "lodash": "^2.4.1",
     "moment": "^2.8.3",
     "mongoose": "^3.8.16",
     "slack-node": "0.0.92",
+    "twilio": "^1.7.0",
     "winston": "^0.7.3"
   }
 }

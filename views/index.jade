@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  div.navbar.navbar-inverse
+    div.container
+      div.navbar-header
+        a.navbar-brand Chorebot
+  div.container
+    div.row
+      div.col-md-12
+        h2 Week of #{formattedDate}
+        table.table.table-striped
+          thead
+            tr
+              th Who
+              th What
+              th Done
+          tbody
+            each assignment in assignments
+              tr
+                td @#{assignment.userName}
+                td #{assignment.chore}
+                td #{assignment.done}

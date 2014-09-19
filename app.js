@@ -2,43 +2,33 @@
 /**
  * CHOREBOT
  * ========
+ *
+ * A web service and several processes that encompass chore tracking and
+ * notifications for the office.
+ *
+ * `utils.verifyEnv()` MUST be called before pulling in the local
+ * dependencies because it will handle assignment of environment vars in
+ * development and general verification across the board.
  */
 
-var _          = require('lodash')
-  , utils      = require('./lib/utils')
-  , async      = require('async')
-  , Models     = require('./lib/models')
-  , moment     = require('moment')
-  , express    = require('express')
-  , winston    = require('winston')
-  , commands   = require('./lib/commands')
-  , mongoose   = require('mongoose')
-  , bodyParser = require('body-parser')
-  , app, models;
+var utils = require('./lib/utils');
+if (!utils.verifyEnv()) {
+  return utils.logger.error('Please verify your environment!');
+}
 
 
 /**
- * CONFIGURATION
- * =============
+ * BOOTSTRAP
+ * =========
  *
- * - verify environment variables are present
- * - setup services
+ * Pulling in dependencies.
  */
 
-// verify env
-if (!utils.verifyEnv()) {
-  winston.error('Please verify your environment!');
-  return;
-}
-
-// services
-mongoose.connect(process.env.MONGOHQ_URL);
-models = Models(mongoose);
-
-// app
-app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+require('express-namespace');
+var app = require('express')();
+app.use(require('body-parser').json());
+app.use(require('body-parser').urlencoded());
+app.set('view engine', 'jade');
 
 
 /**
@@ -49,51 +39,8 @@ app.use(bodyParser.urlencoded());
  * - one route that handles Slack post-backs
  */
 
-// list
-app.get('/', function (req, res) {
-  async.waterfall([
-    function findThisWeeksAssignments(cb) {
-      models.Assignment.find({
-        assigned: utils.getPreviousSunday().toDate()
-      }).exec(function (err, assignments) {
-        if (err) return cb(err);
-        assignments.forEach(function (v) { v = v.toJSON(); });
-        cb(null, assignments);
-      });
-    },
-    function findLastWeeksAssignments(thisWeek, cb) {
-      models.Assignment.find({
-        assigned: utils.getPreviousSunday().subtract('days', 7).toDate()
-      }).exec(function (err, assignments) {
-        if (err) return cb(err);
-        assignments.forEach(function (v) { v = v.toJSON(); });
-        cb(null, thisWeek, assignments);
-      });
-    }
-  ], function (err, thisWeek, lastWeek) {
-    if (err) return winston.error(err);
-    res.json({
-      chorebot: "says 'get back to work!'",
-      thisWeek: thisWeek,
-      lastWeek: lastWeek
-    });
-  });
-});
-
-// postback
-app.post('/inbound', function (req, res) {
-  var text = req.param('text')
-    , cmd;
-
-  _.keys(commands).forEach(function (v) {
-    if (text.indexOf(v) === 0) cmd = v;
-  });
-
-  commands[cmd || 'help'](req.body, function (err, result) {
-    if (err) return winston.error(err);
-    res.json(result);
-  });
-});
+app.namespace('/', require('./lib/controllers')(app));
+app.namespace('/api', require('./lib/controllers/api')(app));
 
 
 /**
