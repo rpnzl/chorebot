@@ -64,7 +64,10 @@ async.waterfall([
             fields: [{ title: "Chore", value: v.chore, short: true }]
           }])
         }, function (err, data) {
-          times -= 1;
+          v.notified = moment().toDate();
+          v.save(function () {
+            times -= 1;
+          });
         });
     });
 
