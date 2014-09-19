@@ -1,5 +1,5 @@
 {
-  "name": "chores",
+  "name": "chorebot",
   "version": "0.0.1",
   "description": "Small chore notifier.",
   "main": "app.js",
